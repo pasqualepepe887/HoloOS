@@ -6,8 +6,6 @@ echo "Aggiornamento lista dei pacchetti..."
 echo "Installazione pacchetti apt..."
 sudo apt install -y \
     git \
-    python3-dev \
-    build-essential \
     python3-tk
 
 # Installa pacchetti pip
