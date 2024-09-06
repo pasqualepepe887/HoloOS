@@ -177,11 +177,23 @@ def edit_mode(number_page):
         edit_state = False
         app_landing_page(number_page)
 
-def remove_app(app_number,total_app):
+def remove_app(app_index, page_number,app_max):
+    
     df = pd.read_excel('app_storege.xlsx')
-    df= df.drop(index=app_number)
-    df.to_excel('app_storege.xlsx',index=False)
-    app_landing_page(total_app)
+    df = df.drop(index=app_index+( page_number*app_max))  # Rimuovi l'app
+    df.to_excel('app_storege.xlsx', index=False)
+    paginated_apps = paginate_apps(df.to_dict('records'), app_max)
+    if page_number >=len(paginated_apps):
+       page_number= page_number-1 
+   
+   # Reorganizza la pagina
+    app_landing_page_edit(page_number)
+    
+    
+def paginate_apps(apps, apps_per_page):
+    """Divide le app in base al numero massimo per pagina."""
+    return [apps[i:i + apps_per_page] for i in range(0, len(apps), apps_per_page)]
+
 
 def update_path(path):
     global path_file
@@ -209,176 +221,183 @@ def select_path(file_button):
     file_dialog.pack( expand=False) 
 
 
-def add_app(numbero_app_state):
-    
+def add_app(page_number):
+    """Schermata per aggiungere una nuova app."""
     canvas.delete("all")
 
+    # Campi di inserimento per nome app, icona e comando
     canvas.create_text(larghezza_schermo/2-150, 200+sott_elem, text="App Name", font=custom_font_info, fill="white")
-    app_name_entry = tk.Entry(root,bg="black", fg="white",font=custom_font_info)
-    app_name__window = canvas.create_window(larghezza_schermo/2-30+150, 200+sott_elem, window= app_name_entry , width=300,height=50)
+    app_name_entry = tk.Entry(root, bg="black", fg="white", font=custom_font_info)
+    app_name_window = canvas.create_window(larghezza_schermo/2+150, 200+sott_elem, window=app_name_entry, width=300, height=50)
 
     canvas.create_text(larghezza_schermo/2-150, 300+sott_elem, text="Icon Path", font=custom_font_info, fill="white")
-    
-    file_button_entry = tk.Entry(root,bg="black", fg="white",font=custom_font_info)
-    file_button_window = canvas.create_window(larghezza_schermo/2+120, 300+sott_elem , window= file_button_entry , width=300,height=50)
-
-    
-   # file_button = canvas.create_text(larghezza_schermo/2+150, 300 , text="SELECT", font=custom_font_info, fill="white")
-    file_button_entry.bind("<Double-1>", lambda event, component= file_button_entry: select_path(component))
-
-
+    file_button_entry = tk.Entry(root, bg="black", fg="white", font=custom_font_info)
+    file_button_window = canvas.create_window(larghezza_schermo/2+150, 300+sott_elem, window=file_button_entry, width=300, height=50)
+    file_button_entry.bind("<Double-1>", lambda event, component=file_button_entry: select_path(component))
 
     canvas.create_text(larghezza_schermo/2-150, 400+sott_elem, text="Command", font=custom_font_info, fill="white")
-    app_command_entry = tk.Entry(root,bg="black", fg="white",font=custom_font_info)
-    app_command__window = canvas.create_window(larghezza_schermo/2-30+150, 400+sott_elem, window= app_command_entry , width=300,height=50)
+    app_command_entry = tk.Entry(root, bg="black", fg="white", font=custom_font_info)
+    app_command_window = canvas.create_window(larghezza_schermo/2+150, 400+sott_elem, window=app_command_entry, width=300, height=50)
 
-
-    next_center = canvas.create_image(larghezza_schermo -200, altezza_schermo - 220 , image=center)
-    next_button = canvas.create_text(larghezza_schermo -200, altezza_schermo - 220 , text="ADD", font=custom_font_info, fill="white")
+    # Pulsante per aggiungere l'app
+    next_center = canvas.create_image(larghezza_schermo - 200, altezza_schermo - 220, image=center)
+    next_button = canvas.create_text(larghezza_schermo - 200, altezza_schermo - 220, text="ADD", font=custom_font_info, fill="white")
+    canvas.tag_bind(next_button, "<Button-1>", lambda event: add_app_storage(app_name_entry, app_command_entry, page_number))
     canvas.tag_bind(next_button, "<Enter>", lambda event, element=next_center: scale_center(event, element))
     canvas.tag_bind(next_button, "<Leave>", lambda event, element=next_center: descale_center(event, element))
-    canvas.tag_bind(next_button, "<Button-1>", lambda event, app_name=app_name_entry,command=app_command_entry: add_app_storage(app_name,command,numbero_app_state))
     
     
-    back_center = canvas.create_image(200 , altezza_schermo - 220 , image=center)
-    back_icone = canvas.create_image(200, altezza_schermo - 220 , image=back)
+    # Pulsante per tornare indietro
+    back_center = canvas.create_image(200, altezza_schermo - 220, image=center)
+    back_icone = canvas.create_image(200, altezza_schermo - 220, image=back)
+    canvas.tag_bind(back_icone, "<Button-1>", lambda event: app_landing_page(page_number))
     canvas.tag_bind(back_icone, "<Enter>", lambda event, element=back_center: scale_center(event, element))
     canvas.tag_bind(back_icone, "<Leave>", lambda event, element=back_center: descale_center(event, element))
-    canvas.tag_bind(back_icone, "<Button-1>", lambda event, number=numbero_app_state: app_landing_page(number))  
 
 
+def app_landing_page(page_number):
+    global edit_state  # Variabile per tracciare se siamo in modalità modifica o no
+    
+    canvas.delete("all")
+    
+    df = pd.read_excel('app_storege.xlsx')
+    numero_app = df.shape[0]
+    apps_per_page = 5  # Numero massimo di app per pagina
+    
+    max_app_row_1 = 3  # Prima riga con 3 app
+    max_app_row_2 = 2  # Seconda riga con 2 app
+    
+    counter_app=0
+    # Suddividi le app in pagine
+    paginated_apps = paginate_apps(df.to_dict('records'), apps_per_page)
+    current_page_apps = paginated_apps[page_number]
+    
+    # Visualizza le app nella pagina corrente
+    for idx, app in enumerate(current_page_apps):
+        app_name = app['name_app']
+        app_icone_path = app['Icone_path']
+        app_command = app['bash_command']
+        
+        if idx < max_app_row_1:
+            # Prima riga (3 app centrate)
+            x_position = 430 + (idx % max_app_row_1) * 250  # Posiziona le app orizzontalmente
+            y_position = 300  # Posizione verticale costante per la prima riga
+        else:
+            # Seconda riga (2 app centrate sotto la prima)
+            x_position = 550 + ((idx - max_app_row_1) % max_app_row_2) * 270  # Posizione centrata per 2 app
+            y_position = 500  # Posizione verticale per la seconda riga
 
-def app_landing_page(numbero_app_state):
+   
+        # Crea l'icona dell'app
+        app_center = canvas.create_image(x_position, y_position, image=center)
+        app_icone = canvas.create_image(x_position, y_position, image=add_app_icone(app_icone_path, app_name))
+
+        # Associa il comando dell'app all'icona
+        canvas.tag_bind(app_icone, "<Enter>", lambda event, element=app_center: scale_center(event, element))
+        canvas.tag_bind(app_icone, "<Leave>", lambda event, element=app_center: descale_center(event, element))
+        canvas.tag_bind(app_icone, "<Button-1>", lambda event, command=app_command: os.system(command))
+
+    # Aggiungi la navigazione tra pagine se necessario
+    if page_number > 0:
+        previous_page_button = canvas.create_image(200 , altezza_schermo /2 -100, image=left_arrow)
+        canvas.tag_bind(previous_page_button, "<Button-1>", lambda event: app_landing_page(page_number - 1))
+    
+    if page_number < len(paginated_apps) - 1:
+        next_page_button = canvas.create_image(larghezza_schermo -200 , altezza_schermo /2 -100, image=right_arrow)
+        canvas.tag_bind(next_page_button, "<Button-1>", lambda event: app_landing_page(page_number + 1))
+
+    # Aggiungi il pulsante "Home"
+    back_center = canvas.create_image(200, altezza_schermo - 220, image=center)
+    back_icone = canvas.create_image(200, altezza_schermo - 220, image=home_icon)
+    canvas.tag_bind(back_icone, "<Enter>", lambda event, element=back_center: scale_center(event, element))
+    canvas.tag_bind(back_icone, "<Leave>", lambda event, element=back_center: descale_center(event, element))
+    canvas.tag_bind(back_icone, "<Button-1>", lambda event: home_page())
+
+    # Aggiungi il pulsante "Edit"
+    edit_center = canvas.create_image(larghezza_schermo - 200, altezza_schermo - 220, image=center)
+    edit_icone = canvas.create_image(larghezza_schermo - 200, altezza_schermo - 220, image=icone_edit)
+    canvas.tag_bind(edit_icone, "<Enter>", lambda event, element=edit_center: scale_center(event, element))
+    canvas.tag_bind(edit_icone, "<Leave>", lambda event, element=edit_center: descale_center(event, element))
+    canvas.tag_bind(edit_icone, "<Button-1>", lambda event: enter_edit_mode(page_number))  # Attiva la modalità modifica
+
+def enter_edit_mode(page_number):
+    """Funzione per entrare in modalità modifica."""
     global edit_state
-    
-    if edit_state == False:
-    
-        canvas.delete("all")
-    
-        df = pd.read_excel('app_storege.xlsx')
-        numero_app = df.shape[0]  #numero di righe
+    edit_state = True  # Imposta la variabile per indicare che sei in edit mode
+    app_landing_page_edit(page_number)  # Richiama la funzione di visualizzazione in edit mode
 
-        counter_app =0
-        padding_app_lateral= 150
-        padding_top_app =0
-        max_appr_riga = 3
-        for i in range(numbero_app_state,numero_app):
-       
-          if numbero_app_state >=5:
-            preview_page_icone = canvas.create_image(200 , altezza_schermo /2 -100, image=left_arrow )
-            canvas.tag_bind(preview_page_icone, "<Button-1>", lambda event, number=(int(numbero_app_state-5)): app_landing_page(number))
-           
+def app_landing_page_edit(page_number):
+    """Funzione per visualizzare le app in modalità modifica."""
+    global edit_state  # Variabile per tracciare se siamo in modalità modifica o no
     
-          if i-numbero_app_state <5:
-            app_name = df.iloc[i, 0]  # Qui estraggo il nome dell'app
-            app_icone_path= df.iloc[i, 1]  # Qui estraggo l'icona dell'app
-            app_command= df.iloc[i, 2]  # Qui estraggo il comando dell'app
-            
-            #print(app_name,app_icone_path,app_command)
-        
-            counter_app=counter_app+1
-            padding_app_lateral=padding_app_lateral+250
-            
-            if counter_app >  max_appr_riga:
-                padding_top_app= padding_top_app+ 250
-                padding_app_lateral=530
-                counter_app= 0
-                max_appr_riga=2
-                
+    canvas.delete("all")
     
-            app_center = canvas.create_image(padding_app_lateral, 150+padding_top_app+sott_elem, image=center)
-            app_icone = canvas.create_image(padding_app_lateral, 150+padding_top_app+sott_elem, image=add_app_icone( app_icone_path,app_name))
-            canvas.tag_bind(app_icone, "<Enter>", lambda event, element=app_center: scale_center(event, element))
-            canvas.tag_bind(app_icone, "<Leave>", lambda event, element=app_center: descale_center(event, element))
-            canvas.tag_bind(app_icone, "<Button-1>", lambda event, command=app_command:os.system(command))
-         
-          elif i-numbero_app_state >=4:
-            next_page_icone = canvas.create_image(larghezza_schermo -200 , altezza_schermo /2 -100, image=right_arrow )
-            canvas.tag_bind(next_page_icone, "<Button-1>", lambda event, number=(i-numbero_app_state): app_landing_page(number))
-            break
-        
+    df = pd.read_excel('app_storege.xlsx')
+    numero_app = df.shape[0]
+    apps_per_page = 5  # Numero massimo di app per pagina
+        # Controlla se il numero di pagina corrente è maggiore del numero di pagine disponibili
+   
+    max_app_row_1 = 3  # Prima riga con 3 app
+    max_app_row_2 = 2  # Seconda riga con 2 app
+    
+    counter_app=0
+    # Suddividi le app in pagine
+    paginated_apps = paginate_apps(df.to_dict('records'), apps_per_page)
+   
+
+    current_page_apps = paginated_apps[page_number]
  
-        back_center = canvas.create_image(200 , altezza_schermo - 220 , image=center)
-        back_icone = canvas.create_image(200, altezza_schermo - 220 , image=home_icon)
-        canvas.tag_bind(back_icone, "<Enter>", lambda event, element=back_center: scale_center(event, element))
-        canvas.tag_bind(back_icone, "<Leave>", lambda event, element=back_center: descale_center(event, element))
-        canvas.tag_bind(back_icone, "<Button-1>", lambda event: home_page())
-    
-    
-        edit_center = canvas.create_image(larghezza_schermo -200, altezza_schermo - 220 , image=center)
-        edit_icone = canvas.create_image(larghezza_schermo -200, altezza_schermo - 220 , image=icone_edit)
-        canvas.tag_bind(edit_icone, "<Enter>", lambda event, element=edit_center: scale_center(event, element))
-        canvas.tag_bind(edit_icone, "<Leave>", lambda event, element=edit_center: descale_center(event, element))
-        canvas.tag_bind(edit_icone, "<Button-1>", lambda event: edit_mode(numbero_app_state))
-
-    else:
+    # Visualizza le app nella pagina corrente
+    for idx, app in enumerate(current_page_apps):
+        app_name = app['name_app']
+        app_icone_path = app['Icone_path']
+        app_command = app['bash_command']
         
-        canvas.delete("all")
-    
-        df = pd.read_excel('app_storege.xlsx')
-        numero_app = df.shape[0]  #numero di righe
+        if idx < max_app_row_1:
+            # Prima riga (3 app centrate)
+            x_position = 430 + (idx % max_app_row_1) * 250  # Posiziona le app orizzontalmente
+            y_position = 300  # Posizione verticale costante per la prima riga
+        else:
+            # Seconda riga (2 app centrate sotto la prima)
+            x_position = 550 + ((idx - max_app_row_1) % max_app_row_2) * 270  # Posizione centrata per 2 app
+            y_position = 500  # Posizione verticale per la seconda riga
 
-        counter_app =0
-        padding_app_lateral= 150
-        padding_top_app =0
-        max_appr_riga = 3
-    
-        for i in range(numbero_app_state,numero_app):
-           
-          if i-numbero_app_state <5:
-            app_name = df.iloc[i, 0]  # Qui estraggo il nome dell'app
-            app_icone_path= df.iloc[i, 1]  # Qui estraggo l'icona dell'app
-            app_command= df.iloc[i, 2]  # Qui estraggo il comando dell'app
-            
-            #print(app_name,app_icone_path,app_command)
+   
+        # Crea le icone dell'app e dell'icona di cancellazione
+        app_center = canvas.create_image(x_position, y_position, image=center)
+        app_icone = canvas.create_image(x_position, y_position, image=add_app_icone(app_icone_path, app_name))
         
-            counter_app=counter_app+1
-            padding_app_lateral=padding_app_lateral+250
-            
-            if counter_app >  max_appr_riga:
-                padding_top_app= padding_top_app+ 250
-                padding_app_lateral=530
-                counter_app= 0
-                max_appr_riga=2
-                
-                
-            app_center = canvas.create_image(padding_app_lateral, 150+padding_top_app+sott_elem, image=center)
-            app_icone = canvas.create_image(padding_app_lateral, 150+padding_top_app+sott_elem, image=add_app_icone( app_icone_path,app_name))
+        # Aggiungi l'icona di cancellazione
+        cancel_icone = canvas.create_image(x_position + 100, y_position - 80, image=icone_cancel)
+        canvas.tag_bind(cancel_icone, "<Button-1>", lambda event, app_index=idx,app_var=page_number,app_max=apps_per_page: remove_app(app_index,app_var,app_max ))
 
-            cancel_icone = canvas.create_image(padding_app_lateral+100, 100+padding_top_app-40+sott_elem , image=icone_cancel)
-            canvas.tag_bind(cancel_icone, "<Button-1>", lambda event, app_number=i,total_app=numbero_app_state: remove_app(app_number,total_app))
-          
+    # Mantieni il pulsante "Home" e il pulsante "Edit"
+    back_center = canvas.create_image(200, altezza_schermo - 220, image=center)
+    back_icone = canvas.create_image(200, altezza_schermo - 220, image=home_icon)
+    canvas.tag_bind(back_icone, "<Enter>", lambda event, element=back_center: scale_center(event, element))
+    canvas.tag_bind(back_icone, "<Leave>", lambda event, element=back_center: descale_center(event, element))
+    canvas.tag_bind(back_icone, "<Button-1>", lambda event: home_page())
 
-        if numero_app-numbero_app_state <5:
-            
-             counter_app=counter_app+1
-             padding_app_lateral=padding_app_lateral+250
-            
-             if counter_app >  3:
-                padding_top_app= padding_top_app+ 250
-                padding_app_lateral=530
-                counter_app= 0
-       
-            
-             add_center = canvas.create_image(padding_app_lateral, 150+padding_top_app+sott_elem , image=center)
-             add_icone = canvas.create_image(padding_app_lateral, 150+padding_top_app+sott_elem, image=icone_add)
-             canvas.tag_bind(add_icone, "<Enter>", lambda event, element=add_center: scale_center(event, element))
-             canvas.tag_bind(add_icone, "<Leave>", lambda event, element=add_center: descale_center(event, element))
-             canvas.tag_bind(add_icone, "<Button-1>", lambda event,total_app=numbero_app_state: add_app(total_app))
+    # Cambia il pulsante "Edit" in "Exit Edit Mode"
+    exit_edit_center = canvas.create_image(larghezza_schermo - 200, altezza_schermo - 220, image=center)
+    exit_edit_icone = canvas.create_image(larghezza_schermo - 200, altezza_schermo - 220, image=icone_edit)
+    canvas.tag_bind(exit_edit_icone, "<Enter>", lambda event, element=exit_edit_center: scale_center(event, element))
+    canvas.tag_bind(exit_edit_icone, "<Leave>", lambda event, element=exit_edit_center: descale_center(event, element))
+    canvas.tag_bind(exit_edit_icone, "<Button-1>", lambda event: exit_edit_mode(page_number))
 
-    
-        back_center = canvas.create_image(200 , altezza_schermo - 220 , image=center)
-        back_icone = canvas.create_image(200, altezza_schermo - 220 , image=home_icon)
-        canvas.tag_bind(back_icone, "<Enter>", lambda event, element=back_center: scale_center(event, element))
-        canvas.tag_bind(back_icone, "<Leave>", lambda event, element=back_center: descale_center(event, element))
-        canvas.tag_bind(back_icone, "<Button-1>", lambda event: home_page())
-    
-    
-        edit_center = canvas.create_image(larghezza_schermo -200, altezza_schermo - 220 , image=center)
-        edit_icone = canvas.create_image(larghezza_schermo -200, altezza_schermo - 220 , image=icone_edit)
-        canvas.tag_bind(edit_icone, "<Enter>", lambda event, element=edit_center: scale_center(event, element))
-        canvas.tag_bind(edit_icone, "<Leave>", lambda event, element=edit_center: descale_center(event, element))
-        canvas.tag_bind(edit_icone, "<Button-1>", lambda event: edit_mode(numbero_app_state))
+    # Aggiungi il pulsante "Add App"
+    add_center = canvas.create_image(larghezza_schermo -200 , altezza_schermo /2 -90, image=center)
+    add_icone = canvas.create_image(larghezza_schermo -200 , altezza_schermo /2 -90, image=icone_add)
+    canvas.tag_bind(add_icone, "<Enter>", lambda event, element=add_center: scale_center(event, element))
+    canvas.tag_bind(add_icone, "<Leave>", lambda event, element=add_center: descale_center(event, element))
+    canvas.tag_bind(add_icone, "<Button-1>", lambda event: add_app(page_number))  # Vai alla schermata di aggiunta app
+
+
+def exit_edit_mode(page_number):
+    """Funzione per uscire dalla modalità modifica."""
+    global edit_state
+    edit_state = False
+    app_landing_page(page_number)  # Torna alla modalità normale
 
 
 def button_click(event, element):
