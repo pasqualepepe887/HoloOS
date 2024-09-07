@@ -307,15 +307,15 @@ def app_landing_page(page_number):
         canvas.tag_bind(next_page_button, "<Button-1>", lambda event: app_landing_page(page_number + 1))
 
     # Aggiungi il pulsante "Home"
-    back_center = canvas.create_image(200, altezza_schermo - 220, image=center)
-    back_icone = canvas.create_image(200, altezza_schermo - 220, image=home_icon)
+    back_center = canvas.create_image(200, altezza_schermo - 190, image=center)
+    back_icone = canvas.create_image(200, altezza_schermo - 190, image=home_icon)
     canvas.tag_bind(back_icone, "<Enter>", lambda event, element=back_center: scale_center(event, element))
     canvas.tag_bind(back_icone, "<Leave>", lambda event, element=back_center: descale_center(event, element))
     canvas.tag_bind(back_icone, "<Button-1>", lambda event: home_page())
 
     # Aggiungi il pulsante "Edit"
-    edit_center = canvas.create_image(larghezza_schermo - 200, altezza_schermo - 220, image=center)
-    edit_icone = canvas.create_image(larghezza_schermo - 200, altezza_schermo - 220, image=icone_edit)
+    edit_center = canvas.create_image(larghezza_schermo - 200, altezza_schermo - 190, image=center)
+    edit_icone = canvas.create_image(larghezza_schermo - 200, altezza_schermo - 190, image=icone_edit)
     canvas.tag_bind(edit_icone, "<Enter>", lambda event, element=edit_center: scale_center(event, element))
     canvas.tag_bind(edit_icone, "<Leave>", lambda event, element=edit_center: descale_center(event, element))
     canvas.tag_bind(edit_icone, "<Button-1>", lambda event: enter_edit_mode(page_number))  # Attiva la modalità modifica
@@ -372,24 +372,25 @@ def app_landing_page_edit(page_number):
         canvas.tag_bind(cancel_icone, "<Button-1>", lambda event, app_index=idx,app_var=page_number,app_max=apps_per_page: remove_app(app_index,app_var,app_max ))
 
     # Mantieni il pulsante "Home" e il pulsante "Edit"
-    back_center = canvas.create_image(200, altezza_schermo - 220, image=center)
-    back_icone = canvas.create_image(200, altezza_schermo - 220, image=home_icon)
+    back_center = canvas.create_image(200, altezza_schermo - 190, image=center)
+    back_icone = canvas.create_image(200, altezza_schermo - 190, image=home_icon)
     canvas.tag_bind(back_icone, "<Enter>", lambda event, element=back_center: scale_center(event, element))
     canvas.tag_bind(back_icone, "<Leave>", lambda event, element=back_center: descale_center(event, element))
     canvas.tag_bind(back_icone, "<Button-1>", lambda event: home_page())
 
     # Cambia il pulsante "Edit" in "Exit Edit Mode"
-    exit_edit_center = canvas.create_image(larghezza_schermo - 200, altezza_schermo - 220, image=center)
-    exit_edit_icone = canvas.create_image(larghezza_schermo - 200, altezza_schermo - 220, image=icone_edit)
+    exit_edit_center = canvas.create_image(larghezza_schermo - 200, altezza_schermo - 190, image=center)
+    exit_edit_icone = canvas.create_image(larghezza_schermo - 200, altezza_schermo - 190, image=icone_edit)
     canvas.tag_bind(exit_edit_icone, "<Enter>", lambda event, element=exit_edit_center: scale_center(event, element))
     canvas.tag_bind(exit_edit_icone, "<Leave>", lambda event, element=exit_edit_center: descale_center(event, element))
     canvas.tag_bind(exit_edit_icone, "<Button-1>", lambda event: exit_edit_mode(page_number))
 
     # Aggiungi il pulsante "Add App"
-    add_center = canvas.create_image(larghezza_schermo -200 , altezza_schermo /2 -90, image=center)
-    add_icone = canvas.create_image(larghezza_schermo -200 , altezza_schermo /2 -90, image=icone_add)
-    canvas.tag_bind(add_icone, "<Enter>", lambda event, element=add_center: scale_center(event, element))
-    canvas.tag_bind(add_icone, "<Leave>", lambda event, element=add_center: descale_center(event, element))
+#    add_center = canvas.create_image(larghezza_schermo -200 , altezza_schermo /2 -90, image=center)
+ #   add_icone = canvas.create_image(larghezza_schermo -200 , altezza_schermo /2 -90, image=icone_add)
+  #  canvas.tag_bind(add_icone, "<Enter>", lambda event, element=add_center: scale_center(event, element))
+   # canvas.tag_bind(add_icone, "<Leave>", lambda event, element=add_center: descale_center(event, element))
+    add_icone = canvas.create_image(larghezza_schermo -170 , altezza_schermo /2 -80, image=icone_add)   
     canvas.tag_bind(add_icone, "<Button-1>", lambda event: add_app(page_number))  # Vai alla schermata di aggiunta app
 
 
