@@ -1,5 +1,6 @@
 #!/bin/bash
 sudo /home/HoloOS/test_update.sh
+sleep 5
 export DISPLAY=:0
 
 nohup python3 /home/HoloOS/GUI_TK/Server/server.py  &
