@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export DISPLAY=:0
-#/home/HoloOS/test_update.sh
+/home/HoloOS/test_update.sh
 nohup python3 /home/HoloOS/GUI_TK/Server/server.py  &
 nohup python3 /home/HoloOS/GUI_TK/servo-code/open_display.py  &
 
