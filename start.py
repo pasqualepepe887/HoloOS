@@ -3,6 +3,7 @@ import os
 
 # Specifica la cartella da controllare
 directory = '/home/HoloOS/GUI_TK/'  # Sostituisci con il percorso della tua cartella
+subprocess.run(['/hme/HoloOS/test_update.sh',capture_output=True, text=True)])
 
 # Costruisci il percorso completo del file config.txt
 config_path = os.path.join(directory, 'config.txt')
