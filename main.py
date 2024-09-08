@@ -7,7 +7,7 @@ import pandas as pd
 import os
 from tkinter import font
 from file_dialog import FileDialog
-
+import subprocess
 
 def get_ip_address():
     try:
@@ -403,7 +403,7 @@ def exit_edit_mode(page_number):
 
 def button_click(event, element):
     if element == game_icone:
-        print("game click")
+        subprocess.run(['python3', 'bnkatanagame/main.py'])
     elif element == setting_icone:
         print("settings click")
     elif element == airplay_icone:
